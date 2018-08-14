@@ -1,0 +1,11 @@
+{
+  "name": "code-comparator",
+  "version": "1.0.0",
+  "description": "Performs code comparison between two directories",
+  "main": "app.js",
+  "scripts": {
+    "test": "N/A"
+  },
+  "author": "natesan.sivagnanam",
+  "license": "ISC"
+}
