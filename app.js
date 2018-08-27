@@ -5,6 +5,7 @@ var inquirer = require('inquirer');
 
 let rootDir = "C:/natlab/code-comparator/code-comparator/test/";
 
+var aFileList = [];
 var aSourceFileList = [];
 var aTargetFileList = [];
 
@@ -34,51 +35,36 @@ var initialize = function (answers) {
       entryType: 'files'
     };
 
-    
-    readdirp(sourceSettings)
-    .on('data', function (entry) {
-      aSourceFileList.push(entry.path);
-      //fnReadFileSync(entry.fullPath);
-    })
-    .on('warn', function (warn) {
-      console.log("Warn: ", warn);
-    })
-    .on('error', function (err) {
-      console.log("Error: ", err);
-    })
-    .on('end', function () {
-      console.log("\nResult:");
-      console.log("Source Directory");
+    fnAsyncDirectoryRead(sourceSettings).then(function(result){
+      console.log("\nPromise Returned : Source List:")
+      aSourceFileList = result;
       console.log(aSourceFileList);
-    });
-    
-    //fnTraverseDirectory(sourceSettings);
-   
-    readdirp(targetSettings)
-    .on('data', function (entry) {
-      aTargetFileList.push(entry.path);
-      //fnReadFileSync(entry.fullPath);
-    })
-    .on('warn', function (warn) {
-      console.log("Warn: ", warn);
-    })
-    .on('error', function (err) {
-      console.log("Error: ", err);
-    })
-    .on('end', function () {
-      console.log("\nResult:");
-      console.log("Target Directory");
-      console.log(aTargetFileList);
+      fnAsyncDirectoryRead(targetSettings).then(function(result){
+        console.log("\nPromise Returned : Target List:")
+        aTargetFileList = result;
+        console.log(aTargetFileList);
+        //TODO: Perform File List comparison
+      });  
     });
   }
 }
 
-var fnTraverseDirectory = function (oSettings) {
-  // Iterate recursively through a folder
-}
-
-var fnPrintResult = function () {
-  console.log("Result:");
-  console.log(aSourceFileList);
-  console.log(aTargetFileList);
+var fnAsyncDirectoryRead = function (oSettings) {
+  return new Promise(function(resolve, reject) {
+    readdirp(oSettings)
+    .on('data', function (entry) {
+      aFileList.push(entry.path);
+      //fnReadFileSync(entry.fullPath);
+    })
+    .on('warn', function (warn) {
+      console.log("Warn: ", warn);
+    })
+    .on('error', function (err) {
+      console.log("Error: ", err);
+      reject(err);
+    })
+    .on('end', function () {
+      resolve(aFileList);
+    });
+  });
 }
