@@ -2,6 +2,7 @@ var fs = require('fs');
 var path = require('path');
 var readdirp = require('readdirp');
 var inquirer = require('inquirer');
+var _ = require('lodash');
 
 let rootDir = "C:/natlab/code-comparator/code-comparator/test/";
 
@@ -44,15 +45,44 @@ var initialize = function (answers) {
         aTargetFileList = result;
         console.log(aTargetFileList);
         //TODO: Perform File List comparison
+        fnCompareFileList(aSourceFileList, aTargetFileList);
       });  
     });
   }
+}
+
+var fnCompareFileList = function(aSrcFileList, aDestFileList) {
+  if (!aSrcFileList || !aDestFileList)
+    return;
+
+  var aFinalList = [];
+
+  aSrcFileList.forEach((srcElement) =>
+    aDestFileList.forEach((destElement)  => {
+      if (srcElement == destElement) {
+        aFinalList.push(srcElement);
+      }
+    }
+    )); 
+
+  console.log("\nFinal Matching List:");
+  console.log(aFinalList);
+
+  console.log("\nAdded in Destination");
+  var aAddedFileList = _.difference(aDestFileList, aSrcFileList);
+  console.log(aAddedFileList);
+
+  console.log("\nDeleted from Source");
+  var aRemovedFileList = _.difference(aSrcFileList, aDestFileList);
+  console.log(aRemovedFileList);
+
 }
 
 var fnAsyncDirectoryRead = function (oSettings) {
   return new Promise(function(resolve, reject) {
     readdirp(oSettings)
     .on('data', function (entry) {
+      //console.log(entry);
       aFileList.push(entry.path);
       //fnReadFileSync(entry.fullPath);
     })
@@ -65,6 +95,7 @@ var fnAsyncDirectoryRead = function (oSettings) {
     })
     .on('end', function () {
       resolve(aFileList);
+      aFileList = [];
     });
   });
 }
