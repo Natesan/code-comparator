@@ -41,13 +41,13 @@ inquirer.prompt([{
 var initialize = function (answers) {
   if (answers.action === constants.CHECK_DIRECTORY) {
     fnAsyncDirectoryRead(sourceSettings).then(function (result) {
-      console.log("\nPromise Returned : Source List:")
+      //console.log("\nPromise Returned : Source List:")
       aSourceFileList = result;
-      console.log(aSourceFileList);
+      //console.log(aSourceFileList);
       fnAsyncDirectoryRead(targetSettings).then(function (result) {
-        console.log("\nPromise Returned : Target List:")
+        //console.log("\nPromise Returned : Target List:")
         aTargetFileList = result;
-        console.log(aTargetFileList);
+        //console.log(aTargetFileList);
         fnCompareFileList(aSourceFileList, aTargetFileList);
         fnCompareFileContent();
       });
@@ -61,7 +61,6 @@ var fnCompareFileList = function (aSrcFileList, aDestFileList) {
 
   aSrcFileList.forEach((srcElement) =>
     aDestFileList.forEach((destElement) => {
-      console.log(destElement);
       if (srcElement.fileName == destElement.fileName) {
         aFinalList.push({
           srcFilePath : srcElement.fullPath,
@@ -87,12 +86,17 @@ var fnCompareFileContent = function () {
   console.log(aFinalList[0]);
 
   var srcFileContent = fs.readFileSync(aFinalList[0].srcFilePath, "utf8");
-  console.log(srcFileContent);
+  //console.log(srcFileContent);
   var destFileContent = fs.readFileSync(aFinalList[0].destFilePath, "utf8");
-  console.log(destFileContent);
+  //console.log(destFileContent);
   
-  var diff = jsdiff.diffChars(srcFileContent, destFileContent);
+  //var diff = jsdiff.diffLines(srcFileContent, destFileContent, {newlineIsToken: true});
+  var diff = jsdiff.structuredPatch(aFinalList[0].srcFilePath, aFinalList[0].destFilePath, 
+                                    srcFileContent, destFileContent,
+                                    'Source File', 'Destination File');
   console.log(diff);
+
+  diff.hunks[0] && diff.hunks[0].lines && console.log(diff.hunks[0].lines);
 
   //TODO : Logic to compute the difference between read files
   // diff.forEach(function (part) {
