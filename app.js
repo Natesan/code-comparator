@@ -61,14 +61,8 @@ var fnCompareFileList = function (aSrcFileList, aDestFileList) {
 
   aSrcFileList.forEach((srcElement) =>
     aDestFileList.forEach((destElement) => {
-      if (srcElement.fileName == destElement.fileName) {
-        //console.log(srcElement);
-        aFinalList.push({
-          srcFilePath : srcElement.fullPath,
-          srcFileName : srcElement.fileName,
-          destFilePath : destElement.fullPath,
-          destFileName : destElement.fileName
-        });
+      if (srcElement == destElement) {
+        aFinalList.push(srcElement);
       }
     }));
 
@@ -86,46 +80,21 @@ var fnCompareFileList = function (aSrcFileList, aDestFileList) {
 
 var fnCompareFileContent = function () {
   console.log("\nComparing File Content for Files available in both directories:");
-  //console.log(aFinalList[0]);
-
-  var srcFileContent = fs.readFileSync(aFinalList[0].srcFilePath, "utf8");
-  //console.log(srcFileContent);
-  var destFileContent = fs.readFileSync(aFinalList[0].destFilePath, "utf8");
-  //console.log(destFileContent);
-  
-  //var diff = jsdiff.diffLines(srcFileContent, destFileContent, {newlineIsToken: true});
   var aDiffList = [];
-  
-  var diff1 = jsdiff.structuredPatch(aFinalList[0].srcFilePath, aFinalList[0].destFilePath,
+
+  for (i=0; i < aFinalList.length; i++) {
+    var srcFileContent = fs.readFileSync(rootDir + '/src/' + aFinalList[i], "utf8");
+    var destFileContent = fs.readFileSync(rootDir + '/dest/' + aFinalList[i], "utf8");
+    
+    var diff = jsdiff.structuredPatch(rootDir + '/src/' + aFinalList[i], rootDir + '/dest/' + aFinalList[i],
     srcFileContent, destFileContent,
-    aFinalList[0].srcFileName, aFinalList[0].destFileName);
-  console.log(diff1);
-  console.log(diff1.hunks[0].lines);
-  
-  
-  // for (i=0; i<aFinalList.length; i++) {
-  //   var diff = jsdiff.structuredPatch(aFinalList[i].srcFilePath, aFinalList[i].destFilePath, 
-  //                                     srcFileContent, destFileContent,
-  //                                     aFinalList[i].srcFileName, aFinalList[i].destFileName);
-  //   if (diff.hunks[0] && diff.hunks[0].lines) {
-  //     aDiffList.push(diff);
-  //     console.log(aDiffList[i]);
-  //     console.log(aDiffList[i].hunks)
-  //   }  
-  // }
-
-
-  
-  //diff.hunks[0] && diff.hunks[0].lines && console.log(diff.hunks[0].lines);
-
-  //TODO : Logic to compute the difference between read files
-  // diff.forEach(function (part) {
-  //   // green for additions, red for deletions
-  //   // grey for common parts
-  //   let color = part.added ? 'green' : part.removed ? 'red' : 'grey';
-  //   process.stderr.write(part.value[color]);
-  // });
-  
+    '/src/' + aFinalList[i], '/dest/' + aFinalList[i]);
+    console.log("\nDifference between '" + diff.oldHeader + "' and '" + diff.newHeader + "'");
+    console.log(diff.hunks[0].lines);
+    if (diff.hunks[0] && diff.hunks[0].lines) {
+      aDiffList.push(diff);
+    }  
+  }
 }
 
 var fnAsyncDirectoryRead = function (oSettings) {
@@ -133,11 +102,12 @@ var fnAsyncDirectoryRead = function (oSettings) {
     readdirp(oSettings)
       .on('data', function (entry) {
         //console.log(entry);
-        aFileList.push({
-          fileName : entry.path,
-          fullPath : entry.fullPath
-        });
-        //fnReadFileSync(entry.fullPath);
+        aFileList.push(entry.path);
+
+        // aFileList.push({
+        //   fileName : entry.path,
+        //   fullPath : entry.fullPath
+        // });
       })
       .on('warn', function (warn) {
         console.log("Warn: ", warn);
