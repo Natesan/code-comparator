@@ -3,6 +3,7 @@ var readdirp = require('readdirp');
 var _ = require('lodash');
 var fs = require('fs');
 var jsdiff = require('diff');
+var writeFile = require('write');
 
 let rootDir = "C:/natlab/code-comparator/code-comparator/test/";
 
@@ -12,6 +13,7 @@ var aAddedFileList = [];
 var aRemovedFileList = [];
 var aSourceFileList = [];
 var aTargetFileList = [];
+var aDiffContent = [];
 
 var constants = {
   CHECK_DIRECTORY: "Check Directories"
@@ -19,12 +21,14 @@ var constants = {
 
 var sourceSettings = {
   root: rootDir + 'src/',
-  entryType: 'files'
+  entryType: 'files',
+  filter: '*.js'
 };
 
 var targetSettings = {
   root: rootDir + 'dest/',
-  entryType: 'files'
+  entryType: 'files',
+  filter: '*.js'
 };
 
 inquirer.prompt([{
@@ -50,6 +54,7 @@ var initialize = function (answers) {
         //console.log(aTargetFileList);
         fnCompareFileList(aSourceFileList, aTargetFileList);
         fnCompareFileContent();
+        fnWriteReport();
       });
     });
   }
@@ -79,22 +84,21 @@ var fnCompareFileList = function (aSrcFileList, aDestFileList) {
 }
 
 var fnCompareFileContent = function () {
-  console.log("\nComparing File Content for Files available in both directories:");
-  var aDiffList = [];
-
-  for (i=0; i < aFinalList.length; i++) {
-    var srcFileContent = fs.readFileSync(rootDir + '/src/' + aFinalList[i], "utf8");
-    var destFileContent = fs.readFileSync(rootDir + '/dest/' + aFinalList[i], "utf8");
+  console.log("\nComparing File Content for Files available in both directories...");
+   
+  aFinalList.forEach((aFinalListItem) => {
+    var srcFileContent = fs.readFileSync(rootDir + '/src/' + aFinalListItem, "utf8");
+    var destFileContent = fs.readFileSync(rootDir + '/dest/' + aFinalListItem, "utf8");
     
-    var diff = jsdiff.structuredPatch(rootDir + '/src/' + aFinalList[i], rootDir + '/dest/' + aFinalList[i],
+    var diff = jsdiff.structuredPatch(rootDir + '/src/' + aFinalListItem, rootDir + '/dest/' + aFinalListItem,
     srcFileContent, destFileContent,
-    '/src/' + aFinalList[i], '/dest/' + aFinalList[i]);
-    console.log("\nDifference between '" + diff.oldHeader + "' and '" + diff.newHeader + "'");
-    console.log(diff.hunks[0].lines);
+    '/src/' + aFinalListItem, '/dest/' + aFinalListItem);
     if (diff.hunks[0] && diff.hunks[0].lines) {
-      aDiffList.push(diff);
+      //console.log("\nDifference between '" + diff.oldHeader + "' and '" + diff.newHeader + "'");
+      //console.log(diff.hunks[0].lines);
+      aDiffContent.push(diff);
     }  
-  }
+  });
 }
 
 var fnAsyncDirectoryRead = function (oSettings) {
@@ -120,5 +124,42 @@ var fnAsyncDirectoryRead = function (oSettings) {
         resolve(aFileList);
         aFileList = [];
       });
+  });
+}
+
+var fnWriteReport = function(){
+  var sDiffContent = [];
+
+  console.log("\nWriting Report to File...");
+  console.log("\nFinal Matching List:" + aFinalList.length);
+  console.log("\nAdded in Destination:" + aAddedFileList.length);
+  console.log("\nDeleted from Source:" + aRemovedFileList.length);
+
+  sDiffContent.push("\nFinal Matching List:" + aFinalList.length);
+  sDiffContent.push("\nAdded in Destination:" + aAddedFileList.length);
+  sDiffContent.push("\nDeleted from Source:" + aRemovedFileList.length);
+
+  sDiffContent.push("\n\nFinal Matching List:\n");
+  aFinalList.forEach((finalListItem) => {
+    sDiffContent.push(finalListItem + '\n');
+  });
+  
+  sDiffContent.push("\n\nAdded in Destination:\n");
+  aAddedFileList.forEach((addedListItem) => {
+    sDiffContent.push(addedListItem + '\n');
+  });
+  
+  sDiffContent.push("\n\nDeleted from Source:\n");
+  aRemovedFileList.forEach((removedListItem) => {
+    sDiffContent.push(removedListItem + '\n');
+  });
+
+  aDiffContent.forEach((diffItem) => {
+    sDiffContent.push("\n\nDifference between '" + diffItem.oldHeader + "' and '" + diffItem.newHeader + "'\n");
+    sDiffContent.push(diffItem.hunks[0].lines);
+  });
+  
+  writeFile('diff.patch', sDiffContent, function(err) {
+    if (err) console.log(err);
   });
 }
