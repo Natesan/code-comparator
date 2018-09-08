@@ -1,4 +1,6 @@
 # code-comparator
+A quick code comparison utility which reduces the hassle of file by file comparison.
+
 Utility to scan given two directories and check for the following
 1. Files that are available on both the directories 
 2. Files that are available in the source but not in the destination directory
@@ -7,3 +9,5 @@ Utility to scan given two directories and check for the following
 Reporting capabilities include 
 1. Report the files that match between the two directories
 2. Consolidated patch of all the differences 
+
+
