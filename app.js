@@ -5,7 +5,7 @@ var fs = require('fs');
 var jsdiff = require('diff');
 var writeFile = require('write');
 
-let rootDir = "C:/natlab/code-comparator/code-comparator/test/";
+let rootDir = process.cwd();
 
 var aFileList = [];
 var aFinalList = [];
@@ -20,13 +20,13 @@ var constants = {
 };
 
 var sourceSettings = {
-  root: rootDir + 'src/',
+  root: rootDir + '/src/',
   entryType: 'files',
   filter: '*.js'
 };
 
 var targetSettings = {
-  root: rootDir + 'dest/',
+  root: rootDir + '/dest/',
   entryType: 'files',
   filter: '*.js'
 };
@@ -159,7 +159,7 @@ var fnWriteReport = function(){
     sDiffContent.push(diffItem.hunks[0].lines);
   });
   
-  writeFile('diff.patch', sDiffContent, function(err) {
+  writeFile('result/diff.patch', sDiffContent, function(err) {
     if (err) console.log(err);
   });
 }
