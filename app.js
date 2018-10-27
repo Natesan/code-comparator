@@ -49,16 +49,12 @@ inquirer.prompt([{
 
 var initialize = function (answers) {
   sMode = answers.action;
-
   fnAsyncDirectoryRead(sourceSettings).then(function (result) {
     aSourceFileList = result;
     fnAsyncDirectoryRead(targetSettings).then(function (result) {
       aTargetFileList = result;
-
-
       fnCompareFileList(aSourceFileList, aTargetFileList);
       fnCompareFileContent();
-
       fnWriteReport();
     });
   });
@@ -153,7 +149,7 @@ var fnWriteReport = function () {
 
   if (sMode === constants.COMPARE_DIRECTORIES_REPORT || sMode === constants.COMPARE_DIRECTORIES_REPORT_DIFF) {
     console.log("\nWriting Report to File...");
-    writeFile('result/result.txt', sReportContent, function (err) {
+    writeFile('result/result.txt', sReportContent.join(""), function (err) {
       if (err) console.log(err);
     });
   }
@@ -162,10 +158,10 @@ var fnWriteReport = function () {
   if (sMode === constants.COMPARE_DIRECTORIES_REPORT_DIFF) {
     aDiffContent.forEach((diffItem) => {
       sDiffContent.push("\n\nDifference between '" + diffItem.oldHeader + "' and '" + diffItem.newHeader + "'\n");
-      sDiffContent.push(diffItem.hunks[0].lines);
+      sDiffContent.push(diffItem.hunks[0].lines.join(""));
     });
     console.log("\nCreating Patch File...");
-    writeFile('result/diff.patch', sDiffContent, function (err) {
+    writeFile('result/diff.patch', sDiffContent.join(""), function (err) {
       if (err) console.log(err);
     });
   }
